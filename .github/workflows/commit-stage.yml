@@ -15,7 +15,7 @@ on:
 env:
   REGISTRY: hub.docker.com
   IMAGE_NAME: irma-ui
-  VERSION: latest
+  VERSION: 1.0
 
 jobs:
   build:
