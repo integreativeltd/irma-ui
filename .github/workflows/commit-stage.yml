@@ -140,8 +140,62 @@ jobs:
             mkdir -p /opt/irma-ui/nginx
             cd /opt/irma-ui
             
-            # Copy nginx.conf from repository
-            cp $GITHUB_WORKSPACE/nginx.conf .
+            # Stop and remove all containers (including those not managed by compose)
+            docker stop $(docker ps -aq) || true
+            docker rm $(docker ps -aq) || true
+            
+            # Remove all networks to ensure clean slate
+            docker network prune -f
+            
+            # Force remove the specific containers if they exist
+            docker rm -f irma-ui irma-nginx || true
+            
+            # Create nginx.conf
+            cat > nginx.conf << 'EOL'
+            events {
+              worker_connections 1024;
+            }
+
+            http {
+              include       mime.types;
+              default_type  application/octet-stream;
+              sendfile      on;
+              keepalive_timeout 65;
+
+              # 🔁 Upstreams
+              upstream irma_ui {
+                server irma-ui:3000;
+              }
+
+              server {
+                listen 80;
+
+                # 🌐 Multi-tenant domain support
+                server_name *.govsuiteng.com govsuiteng.com;
+
+                # Extract tenant ID from subdomain
+                set $tenant "default";
+                if ($host ~ "^([a-z0-9-]+)\.govsuiteng\.com$") {
+                  set $tenant $1;
+                }
+
+                # ⚛️ React SPA (irma-ui)
+                location / {
+                  proxy_pass http://irma_ui;
+                  proxy_http_version 1.1;
+                  proxy_set_header Host $host;
+                  proxy_set_header X-Tenant-ID $tenant;
+                  proxy_set_header Upgrade $http_upgrade;
+                  proxy_set_header Connection 'upgrade';
+                  proxy_cache_bypass $http_upgrade;
+
+                  add_header Access-Control-Allow-Origin * always;
+                  add_header Access-Control-Allow-Methods "GET, POST, OPTIONS, PUT, DELETE" always;
+                  add_header Access-Control-Allow-Headers "Content-Type, Authorization" always;
+                }
+              }
+            }
+            EOL
             
             # Create mime.types file
             cat > nginx/mime.types << 'EOL'
@@ -169,11 +223,18 @@ jobs:
             # Login to Docker Hub
             echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
             
-            # Pull and restart services
-            docker compose pull
-            docker compose down --remove-orphans
-            docker compose up -d
+            # Pull the latest images
+            docker compose pull --quiet
             
-            # Clean up old images
-            docker image prune -f
+            # Stop and remove existing containers from docker-compose
+            docker compose down --volumes --remove-orphans
+            
+            # Start the new containers
+            docker compose up -d --force-recreate --remove-orphans
+            
+            # Verify the containers are running
+            docker ps
+            
+            # Clean up
+            docker system prune -af --volumes
 
