@@ -10,6 +10,6 @@ export default defineConfig({
   },
   preview: {
     port: 3000,
-    allowedHosts: ['irma-ui', 'govsuiteng.com']
+    allowedHosts: ['irma-ui', "govsuiteng.com"]
   },
 })
