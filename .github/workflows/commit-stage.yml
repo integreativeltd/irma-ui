@@ -36,6 +36,18 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      # Install Playwright browsers
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      # Build application
+      - name: Build application
+        run: npm run build
+
+      # Run Playwright tests
+      - name: Run Playwright tests
+        run: npm test
+
   docker:
     needs: build # Ensures this job runs after the build job
     runs-on: ubuntu-22.04
