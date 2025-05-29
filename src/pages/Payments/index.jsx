@@ -1,64 +1,78 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import TableWrapper from '../../components/tables/TableWrapper';
+import payments from './payments';
+import { useNavigate } from 'react-router-dom';
 
 export default function Payments() {
-  const [payments, setPayments] = useState([]);
+  const [search, setSearch] = useState('');
+  const navigate = useNavigate();
+  const headers = ['Payment ID', 'Taxpayer', 'Amount (₦)', 'Method', 'Status', 'Date'];
 
-  useEffect(() => {
-    // Simulated API response
-    const dummyPayments = [
-      {
-        id: 'PMT001',
-        taxpayerName: 'John Doe',
-        amount: 5000,
-        method: 'Paystack',
-        status: 'Confirmed',
-        date: '2024-05-01',
-      },
-      {
-        id: 'PMT002',
-        taxpayerName: 'Jane Smith',
-        amount: 8000,
-        method: 'Bank Transfer',
-        status: 'Pending',
-        date: '2024-05-05',
-      },
-    ];
-    setPayments(dummyPayments);
-  }, []);
+  const handleRowAction = (row, action) => {
+    switch (action.type) {
+      case 'view':
+        console.log('Viewing payment details:', row);
+        break;
+      case 'confirm':
+        console.log('Confirming payment:', row);
+        break;
+      case 'cancel':
+        console.log('Canceling payment:', row);
+        break;
+      case 'receipt':
+        console.log('Downloading receipt for:', row);
+        break;
+      default:
+        break;
+    }
+  };
+
+  const filteredPayments = payments.filter((p) =>
+    `${p.paymentId} ${p.taxpayerName}`.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const rows = filteredPayments.map(p => ({
+    paymentId: p.paymentId,
+    taxpayerName: p.taxpayerName,
+    amount: new Intl.NumberFormat('en-NG', { 
+      style: 'decimal'
+    }).format(p.amount),
+    method: p.method,
+    status: p.status,
+    date: new Date(p.date).toLocaleString('en-NG', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  }));
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-4">Payments</h1>
+    <div className="px-4 sm:px-6 lg:px-8">
+      <div className="sm:flex sm:items-center justify-end">
+        <div className="mt-4 sm:mt-0 sm:flex-none">
+          <button
+            type="button"
+            className="block rounded-md bg-[#12496b] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#0f3a55] focus:outline focus:ring-2 focus:ring-offset-2 focus:ring-[#0f3a55] cursor-pointer"
+            onClick={() => navigate('/manual-payment')}
+          >
+            Record Payment
+          </button>
+        </div>
+      </div>
 
-      <table className="min-w-full border border-gray-300 rounded overflow-hidden shadow">
-        <thead className="bg-gray-200 text-left">
-          <tr>
-            <th className="p-3 border">Payment ID</th>
-            <th className="p-3 border">Taxpayer</th>
-            <th className="p-3 border">Amount (₦)</th>
-            <th className="p-3 border">Method</th>
-            <th className="p-3 border">Status</th>
-            <th className="p-3 border">Date</th>
-          </tr>
-        </thead>
-        <tbody>
-          {payments.map((payment) => (
-            <tr key={payment.id} className="hover:bg-gray-50">
-              <td className="p-3 border">{payment.id}</td>
-              <td className="p-3 border">{payment.taxpayerName}</td>
-              <td className="p-3 border">₦{payment.amount.toLocaleString()}</td>
-              <td className="p-3 border">{payment.method}</td>
-              <td className="p-3 border">
-                <span className={`px-2 py-1 rounded text-sm font-semibold
-                  ${payment.status === 'Confirmed' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
-                  {payment.status}
-                </span>
-              </td>
-              <td className="p-3 border">{payment.date}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <TableWrapper
+        title="Payments"
+        subtitle="A list of all tax payments recorded in the system."
+        headers={headers}
+        rows={rows}
+        search={search}
+        setSearch={setSearch}
+        searchPlaceholder="Search payments..."
+        onRowClick={handleRowAction}
+        type="payment"
+      />
     </div>
   );
 }

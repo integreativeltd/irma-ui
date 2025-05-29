@@ -34,7 +34,7 @@ const sections = [
   {
     title: "Payments",
     items: [
-      { label: "Manual Entry", path: "/manual-payment", icon: BookOpen },
+      // { label: "Manual Entry", path: "/manual-payment", icon: BookOpen },
       { label: "Online Payments", path: "/payments", icon: CreditCard },
       { label: "Reconciliation", path: "/reconciliation", icon: Banknote },
     ],
@@ -66,7 +66,7 @@ export default function Sidebar({ collapsed, setCollapsed }) {
     };
 
   return (
-    <aside className="h-screen w-[250px] bg-white px-4 pt-4 fixed top-0 left-0 z-20">
+    <aside className="h-screen w-[250px] bg-white px-4 pt-4 fixed top-0 left-0 z-[50]">
       {/* Logo */}
 
 
@@ -74,7 +74,7 @@ export default function Sidebar({ collapsed, setCollapsed }) {
       <div className="flex justify-end px-1 mb-6 mt-25">
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="text-gray-600 hover:text-black"
+          className="text-gray-600 hover:text-black cursor-pointer"
         >
           <MenuIcon className="w-5 h-5" />
         </button>
@@ -94,7 +94,7 @@ export default function Sidebar({ collapsed, setCollapsed }) {
                     <button
                       key="logout"
                       onClick={handleLogout}
-                      className="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:bg-gray-100 transition-colors"
+                      className="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
                     >
                       <Icon className="h-5 w-5" />
                       {!collapsed && <span>{label}</span>}
@@ -108,7 +108,7 @@ export default function Sidebar({ collapsed, setCollapsed }) {
                     to={path}
                     className={({ isActive }) =>
                       cn(
-                        "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                        "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors cursor-pointer",
                         isActive
                           ? "bg-blue-100 text-blue-700"
                           : "text-gray-600 hover:bg-gray-100"

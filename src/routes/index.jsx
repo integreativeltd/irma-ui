@@ -12,7 +12,11 @@ import AuthLayout from '../layouts/AuthLayout';
 import DashboardPage from '../pages/Dashboard';
 import Logout from '../pages/Logout';
 import PrivateRoute from './PrivateRoute';
-
+import RevenueStreams from '../pages/RevenueStreams';
+import Invoices from '../pages/Invoices';
+import Reconciliation from '../pages/Reconciliation';
+import Analytics from '../pages/Analytics';
+import Settings from '../pages/Settings';
 
 export default function AppRoutes() {
   const { isAuthenticated } = useAuth();
@@ -45,6 +49,11 @@ export default function AppRoutes() {
           <Route path="payments" element={<Payments />} />
           <Route path="reports" element={<Reports />} />
           <Route path="manual-payment" element={<ManualPayment />} />
+          <Route path="revenue-streams" element={<RevenueStreams />} />
+          <Route path="invoices" element={<Invoices />} />
+          <Route path="reconciliation" element={<Reconciliation />} />
+          <Route path="analytics" element={<Analytics />} />
+          <Route path="settings" element={<Settings />} />
         </Route>
       </Routes>
     </Router>

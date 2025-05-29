@@ -5,7 +5,7 @@ import { BellIcon, ChevronDownIcon, SearchIcon } from "lucide-react";
 
 export default function Header({ user = { name: "Babatunde Alaraje" } }) {
   return (
-    <header className="w-full h-[90px] bg-white flex items-center justify-between px-6 z-100 fixed top-0 pt-2  right-0">
+    <header className="w-full h-[90px] bg-white flex items-center justify-between px-6 z-[50] fixed top-0 pt-2  right-0">
 {/* Logo Section */}
       <div className="flex items-center gap-6">
         <img
@@ -29,11 +29,11 @@ export default function Header({ user = { name: "Babatunde Alaraje" } }) {
 
       {/* Right Side: Notifications & User */}
       <div className="flex items-center gap-5">
-        <BellIcon className="w-6 h-6 text-gray-600" />
-        <span className="text-sm text-gray-800 whitespace-nowrap font-medium">
+        <BellIcon className="w-6 h-6 text-gray-600 cursor-pointer hover:text-gray-800" />
+        <span className="text-sm text-gray-800 whitespace-nowrap font-medium cursor-pointer">
           Code: REM001
         </span>
-        <div className="flex items-center gap-[9px]">
+        <div className="flex items-center gap-[9px] cursor-pointer">
           <div className="flex items-center gap-[7px]">
             <Avatar className="w-[30px] h-[30px] bg-green-700">
             <AvatarFallback className="font-semibold text-white text-[13px]">

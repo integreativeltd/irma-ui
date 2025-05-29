@@ -1,35 +1,52 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useTenant } from '../../context/TenantContext';
-import { getTaxpayers } from '../../features/taxpayers/api';
 import TableWrapper from '../../components/tables/TableWrapper';
 import taxpayers from './taxpayers';
 
 export default function Taxpayers() {
   const tenant = useTenant();
-  // const [taxpayers, setTaxpayers] = useState([]);
   const [search, setSearch] = useState('');
-
-  // useEffect(() => {
-  //   async function loadData() {
-  //     const data = await getTaxpayers(tenant, search);
-  //     setTaxpayers(data);
-  //   }
-  //   loadData();
-  // }, [tenant, search]);
-
   const headers = ['Taxpayer ID', 'Name', 'Email', 'Status'];
+
+  const handleRowAction = (row, action) => {
+    switch (action.type) {
+      case 'edit':
+        // Handle edit action
+        console.log('Editing taxpayer:', row);
+        break;
+      case 'payTax':
+        // Handle pay tax action with amount, method, and other details
+        console.log('Processing payment:', {
+          taxpayer: row,
+          amount: action.amount,
+          method: action.method,
+          paymentDate: action.paymentDate,
+          confirmationNumber: action.confirmationNumber,
+          slip: action.slip
+        });
+        // Here you would typically make an API call to process the payment
+        break;
+      case 'activate':
+        console.log('Activating taxpayer:', row);
+        break;
+      case 'deactivate':
+        console.log('Deactivating taxpayer:', row);
+        break;
+      default:
+        break;
+    }
+  };
 
   const filteredTaxpayers = taxpayers.filter((t) =>
     `${t.name} ${t.taxpayerId}`.toLowerCase().includes(search.toLowerCase())
   );
 
-  const rows = filteredTaxpayers.map(t => [
-    t.taxpayerId,
-    t.name,
-    t.email,
-    t.status,
-  ]);
-  
+  const rows = filteredTaxpayers.map(t => ({
+    taxpayerId: t.taxpayerId,
+    name: t.name,
+    email: t.email,
+    status: t.status,
+  }));
 
   return (
     <div className="px-4 sm:px-6 lg:px-8">
@@ -44,16 +61,16 @@ export default function Taxpayers() {
         </div>
       </div>
 
-    <TableWrapper
-      title="Taxpayers"
-      subtitle="A list of all taxpayers registered in your account."
-      headers={headers}
-      rows={taxpayers}
-      search={search}
-      setSearch={setSearch}
-      searchPlaceholder="Search taxpayers..."
-    />
-
+      <TableWrapper
+        title="Taxpayers"
+        subtitle="A list of all taxpayers registered in your account."
+        headers={headers}
+        rows={rows}
+        search={search}
+        setSearch={setSearch}
+        searchPlaceholder="Search taxpayers..."
+        onRowClick={handleRowAction}
+      />
     </div>
   );
 }
