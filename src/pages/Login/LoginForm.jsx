@@ -77,7 +77,7 @@ export const LoginForm = () => {
               href="#"
             >
               {" "}
-              Sign up{" "}
+              Register{" "}
             </a>
           </p>
         </form>
