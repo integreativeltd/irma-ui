@@ -86,35 +86,55 @@ jobs:
           echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
           echo "Using version: $NEW_VERSION"
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          push: true
-          tags: |
-            ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.new_version }}
-            ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:latest
+      - name: Update Docker Compose version
+        run: |
+          # Export version for docker-compose
+          echo "VERSION=${{ steps.version.outputs.new_version }}" >> $GITHUB_ENV
+          echo "DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}" >> $GITHUB_ENV
 
-      - name: Deploy to DigitalOcean Droplet
+      - name: Build and push with Docker Compose
+        run: |
+          docker compose build
+          docker compose push
+
+      - name: Prepare deployment directory
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.DIGITALOCEAN_HOST }}
           username: ${{ secrets.DIGITALOCEAN_USERNAME }}
           key: ${{ secrets.DIGITALOCEAN_SSH_KEY }}
           script: |
-            # Pull the new image
-            docker pull ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.new_version }}
+            mkdir -p /opt/irma-ui
+
+      - name: Copy Docker Compose files to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.DIGITALOCEAN_HOST }}
+          username: ${{ secrets.DIGITALOCEAN_USERNAME }}
+          key: ${{ secrets.DIGITALOCEAN_SSH_KEY }}
+          source: "docker-compose.yml,nginx.conf,Dockerfile,Dockerfile.nginx"
+          target: "/opt/irma-ui"
+
+      - name: Deploy with Docker Compose
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.DIGITALOCEAN_HOST }}
+          username: ${{ secrets.DIGITALOCEAN_USERNAME }}
+          key: ${{ secrets.DIGITALOCEAN_SSH_KEY }}
+          script: |
+            cd /opt/irma-ui
             
-            # Stop and remove the existing container (if it exists)
-            docker stop irma-ui || true
-            docker rm irma-ui || true
+            # Set environment variables
+            export VERSION=${{ steps.version.outputs.new_version }}
+            export DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
             
-            # Run the new container with the new version
-            docker run -d \
-              --name irma-ui \
-              --restart unless-stopped \
-              -p 3000:3000 \
-              ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.new_version }}
+            # Login to Docker Hub
+            echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+            
+            # Pull and restart services
+            docker compose pull
+            docker compose down --remove-orphans
+            docker compose up -d
             
             # Clean up old images
             docker image prune -f
