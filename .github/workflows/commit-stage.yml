@@ -14,7 +14,6 @@ on:
 env:
   REGISTRY: hub.docker.com
   IMAGE_NAME: irma-ui
-  VERSION: 1.0
 
 jobs:
   test:
@@ -44,38 +43,63 @@ jobs:
           path: playwright-report/
           retention-days: 30
 
-  build:
+  build-and-deploy:
     needs: test
-    name: Build and Push Docker Image
+    name: Build and Deploy
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Log in to Docker Hub
-        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build Docker image
-        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ env.VERSION }} -t ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:latest .
-
-      - name: Push Docker image
+      - name: Get current version and increment
+        id: version
         run: |
-          docker push ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ env.VERSION }}
-          docker push ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:latest
+          CURRENT_VERSION=$(jq -r '.version' version.json)
+          IFS='.' read -r -a version_parts <<< "$CURRENT_VERSION"
+          PATCH_VERSION=$((version_parts[2] + 1))
+          NEW_VERSION="${version_parts[0]}.${version_parts[1]}.$PATCH_VERSION"
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          # Update version.json
+          jq --arg version "$NEW_VERSION" '.version = $version' version.json > tmp.json && mv tmp.json version.json
 
-  deploy:
-    needs: build
-    name: Deploy to DigitalOcean
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Install SSH key
+      - name: Commit and push version update
         run: |
-          mkdir -p ~/.ssh/
-          echo "${{ secrets.DIGITALOCEAN_SSH_KEY }}" > ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
-          eval `ssh-agent -s`
-          ssh-add ~/.ssh/deploy_key
-          echo -e "Host *\n\tStrictHostKeyChecking no\n\tUserKnownHostsFile=/dev/null\n" > ~/.ssh/config
+          git config --global user.name 'GitHub Actions'
+          git config --global user.email 'actions@github.com'
+          git add version.json
+          git commit -m "Bump version to ${{ steps.version.outputs.new_version }}"
+          git push
+
+      - name: Build and export Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          load: true
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.new_version }}
+            ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:latest
+
+      - name: Save Docker image
+        run: |
+          docker save ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.new_version }} > image.tar
+
+      - name: Copy Docker image to Droplet
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.DIGITALOCEAN_HOST }}
+          username: ${{ secrets.DIGITALOCEAN_USERNAME }}
+          key: ${{ secrets.DIGITALOCEAN_SSH_KEY }}
+          source: "image.tar"
+          target: "/tmp"
 
       - name: Deploy to DigitalOcean Droplet
         uses: appleboy/ssh-action@master
@@ -84,22 +108,20 @@ jobs:
           username: ${{ secrets.DIGITALOCEAN_USERNAME }}
           key: ${{ secrets.DIGITALOCEAN_SSH_KEY }}
           script: |
-            # Login to Docker Hub
-            echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
-            
-            # Pull the latest image
-            docker pull ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:latest
+            # Load the Docker image
+            docker load < /tmp/image.tar
+            rm /tmp/image.tar
             
             # Stop and remove the existing container (if it exists)
             docker stop irma-ui || true
             docker rm irma-ui || true
             
-            # Run the new container
+            # Run the new container with the new version
             docker run -d \
               --name irma-ui \
               --restart unless-stopped \
               -p 3000:3000 \
-              ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:latest
+              ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.new_version }}
             
             # Clean up old images
             docker image prune -f
