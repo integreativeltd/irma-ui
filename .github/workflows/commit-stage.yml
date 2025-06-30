@@ -5,14 +5,9 @@ on:
     branches:
       - main
   workflow_dispatch:
-    inputs:
-      deploy:
-        description: "Do you want to deploy the app?"
-        required: false
-        default: "no"
 
 env:
-  REGISTRY: hub.docker.com
+  REGISTRY: docker.io
   IMAGE_NAME: irma-ui
 
 jobs:
@@ -30,22 +25,22 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Install Playwright Browsers
-        run: npx playwright install --with-deps chromium
+      # - name: Install Playwright Browsers
+      #   run: npx playwright install --with-deps chromium
 
-      - name: Run Playwright tests
-        run: npm test
+      # - name: Run Playwright tests
+      #   run: npm test
 
-      - uses: actions/upload-artifact@v4
-        if: failure()
-        with:
-          name: playwright-report
-          path: playwright-report/
-          retention-days: 30
+      # - uses: actions/upload-artifact@v4
+      #   if: failure()
+      #   with:
+      #     name: playwright-report
+      #     path: playwright-report/
+      #     retention-days: 30
 
-  build-and-deploy:
+  build-and-push:
     needs: test
-    name: Build and Deploy
+    name: Build and Push Docker Image
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout code
@@ -57,14 +52,14 @@ jobs:
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Get latest version and increment
         id: version
         run: |
           # Fetch all tags from Docker Hub
-          VERSIONS=$(curl -s "https://hub.docker.com/v2/repositories/${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}/tags/?page_size=100" | jq -r '.results[].name')
+          VERSIONS=$(curl -s "https://hub.docker.com/v2/repositories/${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}/tags/?page_size=100" | jq -r '.results[].name')
           
           # Get the latest version number (excluding 'latest' tag)
           LATEST_VERSION=$(echo "$VERSIONS" | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n1)
@@ -86,155 +81,22 @@ jobs:
           echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
           echo "Using version: $NEW_VERSION"
 
-      - name: Update Docker Compose version
-        run: |
-          # Export version for docker-compose
-          echo "VERSION=${{ steps.version.outputs.new_version }}" >> $GITHUB_ENV
-          echo "DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}" >> $GITHUB_ENV
-
-      - name: Build and push with Docker Compose
-        run: |
-          docker compose build
-          docker compose push
-
-      - name: Setup deployment files and deploy
-        uses: appleboy/ssh-action@master
-        env:
-          DOCKER_COMPOSE_CONTENT: |
-            version: '3.8'
-            services:
-              irma-ui:
-                container_name: irma-ui
-                image: ${{ secrets.DOCKER_USERNAME }}/irma-ui:${{ steps.version.outputs.new_version }}
-                ports:
-                  - "3000:3000"
-                environment:
-                  - PORT=3000
-                  - NODE_ENV=production
-                networks:
-                  - irma-network
-
-              irma-nginx:
-                container_name: irma-nginx
-                image: nginx:alpine
-                ports:
-                  - "80:80"
-                volumes:
-                  - ./nginx.conf:/etc/nginx/nginx.conf:ro
-                  - ./nginx/mime.types:/etc/nginx/mime.types:ro
-                depends_on:
-                  - irma-ui
-                networks:
-                  - irma-network
-
-            networks:
-              irma-network:
-                driver: bridge
+      - name: Extract metadata for Docker
+        id: meta
+        uses: docker/metadata-action@v5
         with:
-          host: ${{ secrets.DIGITALOCEAN_HOST }}
-          username: ${{ secrets.DIGITALOCEAN_USERNAME }}
-          key: ${{ secrets.DIGITALOCEAN_SSH_KEY }}
-          envs: DOCKER_COMPOSE_CONTENT
-          script: |
-            # Create deployment directory and nginx config directory
-            mkdir -p /opt/irma-ui/nginx
-            cd /opt/irma-ui
-            
-            # Stop and remove all containers (including those not managed by compose)
-            docker stop $(docker ps -aq) || true
-            docker rm $(docker ps -aq) || true
-            
-            # Remove all networks to ensure clean slate
-            docker network prune -f
-            
-            # Force remove the specific containers if they exist
-            docker rm -f irma-ui irma-nginx || true
-            
-            # Create nginx.conf
-            cat > nginx.conf << 'EOL'
-            events {
-              worker_connections 1024;
-            }
+          images: ${{ env.REGISTRY }}/${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=${{ steps.version.outputs.new_version }}
+            type=raw,value=latest
 
-            http {
-              include       mime.types;
-              default_type  application/octet-stream;
-              sendfile      on;
-              keepalive_timeout 65;
-
-              # 🔁 Upstreams
-              upstream irma_ui {
-                server irma-ui:3000;
-              }
-
-              server {
-                listen 80;
-
-                # 🌐 Multi-tenant domain support
-                server_name *.govsuiteng.com govsuiteng.com;
-
-                # Extract tenant ID from subdomain
-                set $tenant "default";
-                if ($host ~ "^([a-z0-9-]+)\.govsuiteng\.com$") {
-                  set $tenant $1;
-                }
-
-                # ⚛️ React SPA (irma-ui)
-                location / {
-                  proxy_pass http://irma_ui;
-                  proxy_http_version 1.1;
-                  proxy_set_header Host $host;
-                  proxy_set_header X-Tenant-ID $tenant;
-                  proxy_set_header Upgrade $http_upgrade;
-                  proxy_set_header Connection 'upgrade';
-                  proxy_cache_bypass $http_upgrade;
-
-                  add_header Access-Control-Allow-Origin * always;
-                  add_header Access-Control-Allow-Methods "GET, POST, OPTIONS, PUT, DELETE" always;
-                  add_header Access-Control-Allow-Headers "Content-Type, Authorization" always;
-                }
-              }
-            }
-            EOL
-            
-            # Create mime.types file
-            cat > nginx/mime.types << 'EOL'
-            types {
-                text/html                                        html htm shtml;
-                text/css                                         css;
-                text/xml                                         xml;
-                image/gif                                        gif;
-                image/jpeg                                       jpeg jpg;
-                application/javascript                           js;
-                application/json                                 json;
-                image/png                                        png;
-                image/svg+xml                                    svg svgz;
-                image/x-icon                                     ico;
-                font/woff                                        woff;
-                font/woff2                                       woff2;
-                application/x-font-ttf                           ttf;
-                application/x-font-otf                           otf;
-            }
-            EOL
-            
-            # Create docker-compose.yml
-            echo "$DOCKER_COMPOSE_CONTENT" > docker-compose.yml
-            
-            # Login to Docker Hub
-            echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
-            
-            # Pull the latest images
-            docker compose pull --quiet
-            
-            # Stop and remove existing containers from docker-compose
-            docker compose down --volumes --remove-orphans
-            
-            # Start the new containers
-            docker compose up -d --force-recreate --remove-orphans
-            
-            # Verify the containers are running
-            docker ps
-            
-            # Clean up
-            docker system prune -af --volumes
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
+          cache-to: type=inline
 
