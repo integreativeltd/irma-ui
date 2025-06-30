@@ -8,6 +8,37 @@ export const PaginationControl = ({
   startIndex,
   endIndex,
 }) => {
+  const getPageNumbers = () => {
+    const delta = 2; // Number of pages to show before and after current page
+    const pages = [];
+    
+    // Always show first page
+    pages.push(1);
+    
+    if (currentPage > delta + 2) {
+      pages.push('...');
+    }
+    
+    // Calculate range around current page
+    const rangeStart = Math.max(2, currentPage - delta);
+    const rangeEnd = Math.min(totalPages - 1, currentPage + delta);
+    
+    for (let i = rangeStart; i <= rangeEnd; i++) {
+      pages.push(i);
+    }
+    
+    if (currentPage < totalPages - (delta + 1)) {
+      pages.push('...');
+    }
+    
+    // Always show last page if it exists
+    if (totalPages > 1) {
+      pages.push(totalPages);
+    }
+    
+    return pages;
+  };
+
   return (
     <div className="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6 mt-4">
       <div className="flex flex-1 justify-between sm:hidden">
@@ -46,18 +77,27 @@ export const PaginationControl = ({
                 <path fillRule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clipRule="evenodd" />
               </svg>
             </button>
-            {[...Array(totalPages)].map((_, idx) => (
-              <button
-                key={idx + 1}
-                onClick={() => onPageChange(idx + 1)}
-                className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold cursor-pointer ${
-                  currentPage === idx + 1
-                    ? 'z-10 bg-[#12496b] text-white focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#12496b]'
-                    : 'text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0'
-                }`}
-              >
-                {idx + 1}
-              </button>
+            {getPageNumbers().map((page, idx) => (
+              page === '...' ? (
+                <span
+                  key={`ellipsis-${idx}`}
+                  className="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-700 ring-1 ring-inset ring-gray-300"
+                >
+                  ...
+                </span>
+              ) : (
+                <button
+                  key={page}
+                  onClick={() => onPageChange(page)}
+                  className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold cursor-pointer ${
+                    currentPage === page
+                      ? 'z-10 bg-[#12496b] text-white focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#12496b]'
+                      : 'text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0'
+                  }`}
+                >
+                  {page}
+                </button>
+              )
             ))}
             <button
               onClick={() => onPageChange(currentPage + 1)}

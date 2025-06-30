@@ -6,6 +6,7 @@ import Taxpayers from '../pages/Taxpayers';
 import Payments from '../pages/Payments';
 import Reports from '../pages/Reports';
 import Login from '../pages/Login';
+import RegisterPage from '../pages/Login/RegisterPage';
 import { useAuth } from '../hooks/useAuth';
 import ManualPayment from '../pages/ManualPayment';
 import AuthLayout from '../layouts/AuthLayout';
@@ -17,9 +18,10 @@ import Invoices from '../pages/Invoices';
 import Reconciliation from '../pages/Reconciliation';
 import Analytics from '../pages/Analytics';
 import Settings from '../pages/Settings';
+import Users from '../pages/Users';
 
 export default function AppRoutes() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, hasRole } = useAuth();
 
   console.log("isAuthenticated:", isAuthenticated);
 
@@ -31,6 +33,12 @@ export default function AppRoutes() {
           path="/login"
           element={
             isAuthenticated ? <Navigate to="/" replace /> : <Login />
+          }
+        />
+        <Route
+          path="/register"
+          element={
+            isAuthenticated ? <Navigate to="/" replace /> : <RegisterPage />
           }
         />
 
@@ -54,6 +62,13 @@ export default function AppRoutes() {
           <Route path="reconciliation" element={<Reconciliation />} />
           <Route path="analytics" element={<Analytics />} />
           <Route path="settings" element={<Settings />} />
+          {/* Only allow users with ADMIN role to access user management */}
+          <Route 
+            path="users" 
+            element={
+              hasRole('ADMIN') ? <Users /> : <Navigate to="/" replace />
+            } 
+          />
         </Route>
       </Routes>
     </Router>

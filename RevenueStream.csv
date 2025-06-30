@@ -1,0 +1,107 @@
+IGR Code,Revenue Point,Rate,Amount,Allow Part Payment
+AWF1,Aerated Water Factory: Class 01,Annually (per Factory),"10,000.00",No
+AWF2,Aerated Water Factory: Class 02,Annually (per Factory),"15,000.00",Yes
+AWF3,Aerated Water Factory: Class 03,Annually (per Factory),"20,000.00",Yes
+AWF4,Aerated Water Factory: Class 04,Annually (per Factory),"25,000.00",Yes
+ASS,Akinolugbade Slaughter Slab,Weekly,"15,000.00",Yes
+BKH,Bake House,Annually (per Bakery),"10,000.00",No
+BBS1,Barbing Salon: Class 01,Annually (per shop),"5,000.00",No
+BBS2,Barbing Salon: Class 02,Annually (per shop),"15,000.00",Yes
+BBS3,Barbing Salon: Class 03,Annually (per shop),"20,000.00",Yes
+BCT,Birth Certificate,One off,"1,000.00",No
+BM1,Building Materials: Class 01,Annually (per shop),"5,000.00",No
+BM2,Building Materials: Class 02,Annually (per shop),"10,000.00",No
+BM3,Building Materials: Class 03,Annually (per shop),"20,000.00",Yes
+BM4,Building Materials: Class 04,Annually (per shop),"30,000.00",Yes
+BM5,Building Materials: Class 05,Annually (per shop),"40,000.00",Yes
+BM6,Building Materials: Class 06,Annually (per shop),"50,000.00",Yes
+COI,Certificate of Indigeneship,One off,"5,000.00",No
+CRB,Certificate of Recognition (Baale),One off,"10,000.00",No
+CRC,Certificate of Recognition (CDA),One off,"5,000.00",No
+CRL,Certificate of Recognition (CLUB),One off,"7,000.00",No
+CRF,Certificate of Recognition (Farmers),One off,"6,000.00",No
+COR,Certificate of Residency,One off,"5,000.00",No
+CPS1,Chemist (PPMVA) Store: Class 01,Annually (per shop),"5,000.00",No
+CPS2,Chemist (PPMVA) Store: Class 02,Annually (per shop),"15,000.00",No
+CPS3,Chemist (PPMVA) Store: Class 03,Annually (per shop),"20,000.00",No
+CLR,Cold Room,Annually,"50,000.00",Yes
+CBR,Compound Burial,One off,"10,000.00",No
+CTR,Contractor's registration fees,One off,"15,000.00",No
+DVL,Development levy,"2,000,000 per month","2,000,000.00",No
+DBF1,Drinks & Beverages Factory: Class 01,Annually,"20,000.00",No
+DBF2,Drinks & Beverages Factory: Class 02,Annually,"40,000.00",Yes
+DBF3,Drinks & Beverages Factory: Class 03,Annually,"60,000.00",Yes
+DBF4,Drinks & Beverages Factory: Class 04,Annually,"80,000.00",Yes
+DBF5,Drinks & Beverages Factory: Class 05,Annually,"100,000.00",Yes
+EMT,Elega Market,Market Days (per ticket),100,No
+EVF,Environmental Fees,Regularly,"1,000.00",Yes
+FD1,Fashion Designer: Class 01,Annually (per shop),"5,000.00",No
+FD2,Fashion Designer: Class 02,Anually,"15,000.00",No
+FD3,Fashion Designer: Class 03,Anually,"20,000.00",No
+FST,Filling Station,Annually (per pump),"25,000.00",No
+FLC,Food License,Annually (per shop),"2,500.00",No
+FLE,Food License (Eatery),Annually (per shop),"25,000.00",Yes
+GO1,Gas Outlets: Classs 01,Annually,"5,000.00",No
+GO2,Gas Outlets: Classs 02,Annually,"15,000.00",No
+GO3,Gas Outlets: Classs 03,Annually,"20,000.00",No
+HKP,Hackney Permit,Annually,"5,000,000.00",Yes
+HC1,Hairdresser and Cosmetics: Class 01,Annually (per shop),"5,000.00",No
+HC2,Hairdresser and Cosmetics: Class 02,Annually (per shop),"15,000.00",No
+HC3,Hairdresser and Cosmetics: Class 03,Annually (per shop),"20,000.00",No
+HLM,Helmet,nil,0,Yes
+HTL,Hotellier,Annually,0,yes
+IBM,Iberekodo Market,Market Days (per ticket),100,No
+LAB,Lafenwa and other Abbatori (Slabs),Weekly,"500,000.00",yes
+LMK,Lafenwa Market,Daily (per ticket),100,No
+LWK,Leather Works,Annually,"5,000.00",No
+LL1,Liquor License: Class 01,Annually,"5,000.00",No
+LL2,Liquor License: Class 02,Annually,"10,000.00",No
+LL3,Liquor License: Class 03,Annually,"20,000.00",No
+LL4,Liquor License: Class 04,Annually,"30,000.00",Yes
+LL5,Liquor License: Class 05,Annually,"40,000.00",Yes
+LL6,Liquor License: Class 06,Annually,"50,000.00",Yes
+MCL,Marriage Church Licence,One off,"5,000.00",No
+MRG,Marriage Registry,One off,"7,000.00",No
+MPC,Miller (Pepper and Corn),Annually,"2,500.00",Yes
+NSA,Naming of Street (Application),One off,"20,000.00",No
+NSV,Naming of Street (Avenue),One off,"200,000.00",Yes
+NSB,Naming of Street (Bus Stop),One off,"250,000.00",Yes
+NSC,Naming of Street (Close),One off,"150,000.00",Yes
+NSR,Naming of Street (Cresent),One off,"200,000.00",Yes
+NSN,Naming of Street (Renewal),Annually,"20,000.00",NO
+NRD,Naming of Street (Road),One off,"250,000.00",Yes
+NSS,Naming of Street (Street),One off,"150,000.00",Yes
+OEM,Obada idi Emi market,,100,No
+OLM,Olomore Market,100 per market,100,No
+OTA,One Way Traffic Offenders: Agbara,Weekly,"20,000.00",No
+OTO,One Way Traffic Offenders: Ogunbo,Weekly,"20,000.00",No
+OTS,One Way Traffic Offenders: Sparing,Weekly,"20,000.00",No
+PPS,Private Schools (Primary),Annually (per school),"10,000.00",No
+PSH,Private Schools (Secondary) Health Inspection Approval,Annually (per school),"15,000.00",No
+PSA,Provision Store: Class 01,Annually (per shop),"5,000.00",No
+PSC,Provision Store: Class 02,Annually (per shop),"15,000.00",No
+PSE,Provision Store: Class 03,Annually (per shop),"20,000.00",No
+SQR,Quarries,nil,0,No
+RTP,Radio & TV License,Annually,"1,000.00",No
+RTH,Rentage of Hall (Secretariat),One off,"150,000.00",Yes
+RLG,Rentage of Local Govenment Property (Ori-Omi),One off,"150,000.00",Yes
+RMR,Rice Millers,Annually (per shop),"5,000.00",Yes
+SIM,Shops ( Iberekodo Market),Annually (per shop),"12,000.00",No
+SEC,Shops (Elega Complex),Annually (per shop),"24,000.00",Yes
+SMC,Shops (Lafenwa Market Complex),Annually (per shop),"36,000.00",Yes
+SML,Shops (Lafenwa Market Lock up shop),Annually (per shop),"30,000.00",Yes
+SOC,Shops (Olomoore Complex),Annually (per shop),"12,000.00",No
+SMO,Shops {Lafenwa Market Open Stall),Annually (per shop),"12,000.00",No
+TMA,Tailoring Materials: Class 01,Annually,"5,000.00",No
+TMC,Tailoring Materials: Class 02,Annually,"15,000.00",No
+TME,Tailoring Materials: Class 03,Annually,"20,000.00",No
+TPD,Toll points: Alamala,Weekly,"30,000.00",yes
+TPG,Toll points: Aro Toll,Weekly,"30,000.00",yes
+TPF,Toll points: Cow Market Rounda,Weekly,"30,000.00",yes
+TPB,Toll points: Idi-Emi,Weekly,"40,000.00",yes
+TPA,Toll points: Imala,Weekly,"40,000.00",yes
+TPE,Toll points: Lafenwa (Sheld) Hausa Teritory,Weekly,"25,000.00",yes
+TPC,Toll points: Rounda,Weekly,"100,000.00",yes
+TPH,Toll points: Sawmill Lafenwa,Weekly,"10,000.00",No
+VCP,Vulcanizers' permit,annually,"5,000.00",No
+WLP,Welders' permit,annually,"5,000.00",No

@@ -1,10 +1,18 @@
 import React, { useCallback } from 'react';
 import { StatusBadge } from '../ui/status-badge';
 import ActionMenu from './ActionMenu';
-import PaymentActionMenu from './PaymentActionMenu';
 import { cn } from '../../lib/utils';
 
-export default function TableRow({ row, selected, selectedRows, setSelectedRows, onRowClick, type = 'default' }) {
+export default function TableRow({ 
+  row, 
+  selected, 
+  selectedRows, 
+  setSelectedRows, 
+  onRowClick,
+  menuItems,
+  drawerContent,
+  drawerTitle 
+}) {
   const toggle = useCallback((e) => {
     e.stopPropagation();
     setSelectedRows(
@@ -14,54 +22,42 @@ export default function TableRow({ row, selected, selectedRows, setSelectedRows,
     );
   }, [row, selectedRows, setSelectedRows]);
 
-  const handleAction = useCallback((action, data) => {
-    switch (action) {
-      case 'activate':
-      case 'deactivate':
-        onRowClick?.(row, { type: action });
-        break;
-      case 'edit':
-        onRowClick?.(row, { type: 'edit' });
-        break;
-      case 'view':
-      case 'confirm':
-      case 'cancel':
-      case 'receipt':
-        onRowClick?.(row, { type: action });
-        break;
-      case 'payTax':
-        onRowClick?.(row, { type: 'payTax', ...data });
-        break;
-      default:
-        break;
+  const handleAction = useCallback((data, action) => {
+    if (typeof action === 'string') {
+      onRowClick?.(row, { type: action, data });
+    } else {
+      onRowClick?.(row, action);
     }
   }, [row, onRowClick]);
 
   const handleKeyDown = useCallback((e) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
-      onRowClick?.(row);
     }
-  }, [row, onRowClick]);
+  }, []);
 
-  const renderCell = useCallback((value, idx, rowData) => {
-    const keys = Object.keys(rowData);
-    const key = keys[idx];
-    
-    // If this is the status column (excluding date)
+  const renderCell = useCallback((value, key) => {
+    if (key.startsWith('_')) {
+      return null;
+    }
+
     if (key === 'status') {
       return <StatusBadge status={value || 'Unknown'} />;
     }
+
+    if (value === null || value === undefined) {
+      return '-';
+    }
     
-    // Plain text for date and other fields
+    if (typeof value === 'object') {
+      return JSON.stringify(value);
+    }
+
     return <span className="text-gray-900">{value}</span>;
   }, []);
 
-  const ActionMenuComponent = type === 'payment' ? PaymentActionMenu : ActionMenu;
-
   return (
     <tr
-      onClick={() => onRowClick?.(row)}
       onKeyDown={handleKeyDown}
       className={cn(selected ? 'bg-gray-50' : 'bg-white')}
       tabIndex={0}
@@ -80,21 +76,24 @@ export default function TableRow({ row, selected, selectedRows, setSelectedRows,
           />
         </div>
       </td>
-      {Object.entries(row).map(([key, value], idx) => (
-        <td 
-          key={key}
-          className="px-3 py-4 text-sm text-gray-900"
-        >
-          {renderCell(value, idx, row)}
-        </td>
-      ))}
+      {Object.entries(row).map(([key, value]) => 
+        key.startsWith('_') ? null : (
+          <td key={key} className="px-3 py-4 text-sm text-gray-900">
+            {renderCell(value, key)}
+          </td>
+        )
+      )}
       <td className="w-20 px-3 py-4">
         <div className="flex justify-center">
-          <ActionMenuComponent 
-            status={row.status || 'Unknown'}
-            onAction={handleAction}
-            row={row}
-          />
+          {menuItems && (
+            <ActionMenu 
+              row={row}
+              onAction={handleAction}
+              menuItems={typeof menuItems === 'function' ? menuItems(row) : menuItems}
+              drawerContent={drawerContent}
+              drawerTitle={drawerTitle}
+            />
+          )}
         </div>
       </td>
     </tr>

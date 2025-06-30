@@ -14,7 +14,10 @@ export default function TableWrapper({
   searchPlaceholder = 'Search...',
   onRowClick,
   onBulkAction,
-  type = 'default'
+  type = 'default',
+  menuItems = {},
+  drawerContent = null,
+  drawerTitle = ''
 }) {
   const checkbox = useRef();
   const [checked, setChecked] = useState(false);
@@ -106,6 +109,9 @@ export default function TableWrapper({
                       setSelectedRows={setSelectedRows}
                       onRowClick={onRowClick}
                       type={type}
+                      menuItems={menuItems}
+                      drawerContent={drawerContent}
+                      drawerTitle={drawerTitle}
                     />
                   ))}
                 </tbody>

@@ -21,7 +21,9 @@ const STATUS_STYLES = {
 };
 
 export function StatusBadge({ status }) {
-  const normalizedStatus = status?.toLowerCase() || 'default';
+  // If status is a string, use it directly, otherwise use 'default'
+  const statusText = typeof status === 'string' ? status : 'default';
+  const normalizedStatus = statusText.toLowerCase();
   const style = STATUS_STYLES[normalizedStatus] || STATUS_STYLES.default;
 
   return (

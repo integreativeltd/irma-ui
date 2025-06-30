@@ -7,22 +7,26 @@ import { PasswordInput } from "../../components/Inpute/PasswordInput";
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 
-export const LoginForm = () => {
+export const RegisterForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { register } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     
     try {
-      await login(email, password);
+      console.log('Starting registration...');
+      const result = await register(email, password, name);
+      console.log('Registration successful:', result);
       navigate('/', { replace: true });
     } catch (error) {
-      setError(error.message);
+      console.error('Registration failed:', error);
+      setError(error.message || 'Registration failed. Please try again.');
     }
   }
 
@@ -35,17 +39,26 @@ export const LoginForm = () => {
           className="mb-10 h-[50px]"
         />
         <h2 className="mb-4 text-5xl font-semibold text-gray-500">
-          Welcome Back
+          Create Account
         </h2>
         <p className="mb-8 text-lg text-gray-500">
-          Kindly fill in your details to sign in to your account
+          Fill in your details to create your account
         </p>
         {error && (
           <div className="mb-4 p-3 text-red-600 bg-red-50 rounded-lg">
             {error}
           </div>
         )}
-        <form onSubmit={handleSubmit} data-testid="login-form">
+        <form onSubmit={handleSubmit} data-testid="register-form">
+          <InputField
+            id="name"
+            label="Full Name"
+            type="text"
+            placeholder="John Doe"
+            value={name}
+            onChange={setName}
+            required
+          />
           <InputField
             id="email"
             label="Email Address"
@@ -62,22 +75,21 @@ export const LoginForm = () => {
             value={password}
             onChange={setPassword}
             required
-            forgotPasswordLink="#"
           />
           <button
             className="p-3.5 w-full text-base font-medium bg-[#12496b] hover:bg-[#0f3a55] rounded-lg cursor-pointer border-none duration-200 text-white transition-colors"
             type="submit"
           >
-            Login
+            Register
           </button>
 
           <p className="mt-6 text-md text-center text-gray-500">
-            <span>Don't have an account? </span>
+            <span>Already have an account? </span>
             <Link
-              to="/register"
+              to="/login"
               className="font-medium text-md text-blue-800 no-underline"
             >
-              Register
+              Login
             </Link>
           </p>
         </form>

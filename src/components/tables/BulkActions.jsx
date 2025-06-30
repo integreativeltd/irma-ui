@@ -24,7 +24,7 @@ export default function BulkActions({ selectedCount, onAction, type = 'default' 
         <button
           key={id}
           type="button"
-          className={`inline-flex items-center rounded bg-white px-2 py-1 text-sm font-semibold ${className} shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed`}
+          className={`inline-flex items-center rounded bg-white px-2 py-1 text-sm font-semibold ${className} shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed hover:cursor-pointer`}
           onClick={() => onAction(id)}
         >
           <Icon className="h-4 w-4 mr-1" aria-hidden="true" />

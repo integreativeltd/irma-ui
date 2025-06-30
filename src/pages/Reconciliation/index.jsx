@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import TableWrapper from '../../components/tables/TableWrapper';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../../components/ui/select';
 import { Card, CardContent } from '../../components/ui/card';
+import { FileText, BarChart2, AlertTriangle } from 'lucide-react';
 
 export default function Reconciliation() {
   const [search, setSearch] = useState('');
@@ -38,7 +39,7 @@ export default function Reconciliation() {
       status: 'Matched',
       variance: '₦0'
     }
-  ];
+  ].map(transaction => ({ ...transaction, _original: transaction }));
 
   const handleRowAction = (row, action) => {
     switch (action.type) {
@@ -48,10 +49,66 @@ export default function Reconciliation() {
       case 'resolve':
         console.log('Resolving variance:', row);
         break;
+      case 'report':
+        console.log('Generating report:', row);
+        break;
       default:
         break;
     }
   };
+
+  const getTransactionMenuItems = useCallback((row) => {
+    const items = {
+      view: {
+        label: 'View Details',
+        icon: FileText,
+        className: 'text-gray-700',
+        showDrawer: true
+      }
+    };
+
+    if (row.status === 'Unmatched') {
+      items.resolve = {
+        label: 'Resolve Variance',
+        icon: AlertTriangle,
+        className: 'text-orange-600',
+        showDrawer: true
+      };
+    }
+
+    items.report = {
+      label: 'Generate Report',
+      icon: BarChart2,
+      className: 'text-blue-600'
+    };
+
+    return items;
+  }, []);
+
+  const renderDrawerContent = useCallback((row, actionType) => {
+    if (actionType === 'resolve') {
+      return (
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold">Resolve Variance</h3>
+          <p className="text-gray-600">Transaction variance of {row.variance} detected.</p>
+          {/* Add variance resolution form here */}
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-4">
+        {Object.entries(row._original || {}).map(([key, value]) => (
+          <div key={key} className="space-y-1">
+            <label className="block text-sm font-medium text-gray-700">
+              {key.charAt(0).toUpperCase() + key.slice(1)}
+            </label>
+            <div className="text-gray-900">{value}</div>
+          </div>
+        ))}
+      </div>
+    );
+  }, []);
 
   const filteredTransactions = transactions.filter((transaction) =>
     `${transaction.transactionId} ${transaction.bankRef}`.toLowerCase().includes(search.toLowerCase())
@@ -127,6 +184,9 @@ export default function Reconciliation() {
           setSearch={setSearch}
           searchPlaceholder="Search transactions..."
           onRowClick={handleRowAction}
+          menuItems={getTransactionMenuItems}
+          drawerContent={renderDrawerContent}
+          drawerTitle="Transaction Details"
         />
       </div>
     </div>

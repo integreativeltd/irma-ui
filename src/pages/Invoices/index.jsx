@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import TableWrapper from '../../components/tables/TableWrapper';
+import { FileText, Edit, Download } from 'lucide-react';
 
 export default function Invoices() {
   const [search, setSearch] = useState('');
-
   const headers = ['Invoice ID', 'Taxpayer', 'Amount', 'Due Date', 'Revenue Stream', 'Status'];
 
   // Sample data - replace with actual API call
@@ -32,7 +32,7 @@ export default function Invoices() {
       revenueStream: 'Personal Income Tax',
       status: 'Overdue'
     }
-  ];
+  ].map(invoice => ({ ...invoice, _original: invoice }));
 
   const handleRowAction = (row, action) => {
     switch (action.type) {
@@ -49,6 +49,41 @@ export default function Invoices() {
         break;
     }
   };
+
+  const getInvoiceMenuItems = useCallback((row) => ({
+    view: {
+      label: 'View Details',
+      icon: FileText,
+      className: 'text-gray-700',
+      showDrawer: true
+    },
+    edit: {
+      label: 'Edit Invoice',
+      icon: Edit,
+      className: 'text-blue-600',
+      showDrawer: true
+    },
+    download: {
+      label: 'Download PDF',
+      icon: Download,
+      className: 'text-green-600'
+    }
+  }), []);
+
+  const renderDrawerContent = useCallback((row, actionType) => {
+    return (
+      <div className="space-y-4">
+        {Object.entries(row._original || {}).map(([key, value]) => (
+          <div key={key} className="space-y-1">
+            <label className="block text-sm font-medium text-gray-700">
+              {key.charAt(0).toUpperCase() + key.slice(1)}
+            </label>
+            <div className="text-gray-900">{value}</div>
+          </div>
+        ))}
+      </div>
+    );
+  }, []);
 
   const filteredInvoices = invoices.filter((invoice) =>
     `${invoice.taxpayer} ${invoice.invoiceId}`.toLowerCase().includes(search.toLowerCase())
@@ -76,6 +111,9 @@ export default function Invoices() {
         setSearch={setSearch}
         searchPlaceholder="Search invoices..."
         onRowClick={handleRowAction}
+        menuItems={getInvoiceMenuItems}
+        drawerContent={renderDrawerContent}
+        drawerTitle="Invoice Details"
       />
     </div>
   );
